@@ -2,50 +2,85 @@
             is measured in Bytes. Thus, all convertions from Bytes, to KiloBytes, MegaBytes 
             and so on must take that into account. */
 
-const MILLION = 1000*1000;
-const total_space = 5*MILLION;/*in KB units. I will pretend I only have 1GB,
-Otherwise it will be annoying to test what happens when I reach the limit of space available.*/
-const total_space_gb = total_space/MILLION; // 1GB ~ 10^6 KB, thus in this case, it should be 0.1GB
-let available_space = total_space - 0;//KB
+const KB = 1024;
+const MB = KB*KB;
+const GB = KB*MB;
 
-/* a simple arrow function to translate space measured in KB to GB. */
-const kb_to_gb = space => space/MILLION;
+const total_space = 5*MB;/*measured in Byte units.*/
+let available_space = total_space-0;//Bytes
 
-/* This is the event handler I wrote for the onload event for the body. That is to say,
-this method runs when the body of the HTML document has done loading.
-Will check for previously uploaded files, even after a refresh. */
-const Initialize = e => {
-    document.getElementById("max-capacity").innerText = `${total_space_gb} MB`;
-    if(localStorage.getItem("available_space")== null){
+/**
+ * 
+ * @param {int} size_bytes 
+ * @returns {string} - a string representing the most fitting unit convertion of size_bytes
+ */
+function size_to_string(size_bytes){
+    if(size_bytes/GB>1){
+        return `${(size_bytes/GB).toFixed(1)} GB`;
+    }
+    if(size_bytes/MB>1){
+        return `${(size_bytes/MB).toFixed(1)} MB`;
+    }
+    if(size_bytes/KB>1){
+        return `${(size_bytes/KB).toFixed(1)} KB`;
+    }
+    return `${size_bytes} Bytes`;
+}
+
+/**
+ * 
+ * @param {Event} e 
+ * @returns {void} - this body onload event handler updates
+ *  the html elements representing the remaining space.
+ */
+
+function updateRemaining(){
+    const num_and_unit = size_to_string(available_space).split(" ");
+    document.getElementById("remaining-space").innerHTML = 
+    `${num_and_unit[0]} <span>${num_and_unit[1]} left</span>`;
+}
+
+function Initialize(e){
+    document.getElementById("max-capacity").innerText = size_to_string(total_space);
+    if(localStorage.getItem("available_space")== null){/*Means no files were previously uploaded */
         available_space = total_space;
     }
     else{
-        available_space = parseInt(localStorage.getItem("available_space"));
-        console.log("extracted available space from localstorage...");
-        console.log(available_space);
+        try{
+            available_space = parseInt(localStorage.getItem("available_space"));
+        }
+        catch(err){
+            available_space = total_space;
+            console.error("Failed to convert available_space from string to integer");
+        }
     }
-    let percentage = 100*(total_space-available_space)/total_space;
-    console.log("percentage = "+percentage);
-    document.getElementsByClassName("gradient-bar")[0].setAttribute("style",`width:${percentage}%;`);
-    if (localStorage.length > 1){
-        console.log(`Local storage kept the following files:`);
-    }
+    setBarWidth();
+    updateRemaining();
     /* checks the localstorage for all previously uploaded images */
     for(let i = 0; i<localStorage.length;i++){
         let key = localStorage.key(i);
-        console.log(key);
+        //TODO: maybe do something with the image names later...
     }
-    console.log(`done loading uploaded images from local storage. remaining: ${available_space}`);
 }
 
-/* Event handler for clicking the upload files button.
-triggers the click event for the <input type="file"> element. */
+/**
+ * 
+ * @param {*} e 
+ * @returns {void} - This is an event handler for clicking the upload files button.
+ * It triggers the click event for the <input type="file"> element.
+ */
 const openUploadMenu = e => document.getElementById("upload-input").click();
 
 const supported_extensions = ["jpg","jpeg","png","gif","JPG","JPEG","PNG","GIF"];
 
-/* This is the event handler for when the user has finished selecting files to upload.  */
-const onInput = e => {
+/**
+ * 
+ * @param {*} e 
+ * @returns {void} This is the event handler for when the user has finished selecting files to upload.
+ * It checks if the selected files are in a vlid image format, and if there is enough space for them.
+ * If all is ok, will upload and update the available space.
+ */
+function onInput(e){
     const {files} = e.target;/* extracting the FileList object from the Event object e */
     let all_files_valid = true;
     let required_space = 0;
@@ -63,20 +98,22 @@ const onInput = e => {
     }
     
     if(all_files_valid){
-        console.log(`The required space is: ${required_space}KB,
-        the available: ${available_space}KB.The total space: ${total_space_gb}GB`);
         if(available_space < required_space){
-            console.error("There is not enough space on the disk");
+            alert("There is not enough space on the disk");
             return;
         }
         available_space -= required_space;
         for(let i = 0; i< files.length;i++){
-            console.log(files[i]);
             localStorage.setItem(files[i].name,files[i]);
         }
         localStorage.setItem("available_space",String(available_space));
-        let percentage = 100*(total_space-available_space)/total_space;
-        document.getElementsByClassName("gradient-bar")[0].setAttribute("style",`width:${percentage}%`);
+        setBarWidth();
+        updateRemaining();
     }
 
 };
+
+function setBarWidth(){
+    let percentage = 100*(total_space-available_space)/total_space;
+    document.getElementsByClassName("gradient-bar")[0].setAttribute("style",`width:${percentage}%`);
+}
