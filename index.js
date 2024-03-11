@@ -27,18 +27,33 @@ function size_to_string(size_bytes){
     return `${size_bytes} Bytes`;
 }
 
-/**
- * 
- * @param {Event} e 
- * @returns {void} - this body onload event handler updates
- *  the html elements representing the remaining space.
- */
+function setBarWidth(){
+    let percentage = 100*(total_space-available_space)/total_space;
+    document.getElementsByClassName("gradient-bar")[0].setAttribute("style",`width:${percentage}%`);
+}
+
+function updateUsed(){
+    document.getElementById("used-space").innerText = size_to_string(total_space - available_space);
+}
 
 function updateRemaining(){
     const num_and_unit = size_to_string(available_space).split(" ");
     document.getElementById("remaining-space").innerHTML = 
     `${num_and_unit[0]} <span>${num_and_unit[1]} left</span>`;
 }
+
+function updateHTML(){
+    setBarWidth();
+    updateRemaining();
+    updateUsed();
+}
+
+/**
+ * 
+ * @param {Event} e 
+ * @returns {void} - this body onload event handler updates
+ *  the html elements representing the remaining space.
+ */
 
 function Initialize(e){
     document.getElementById("max-capacity").innerText = size_to_string(total_space);
@@ -54,8 +69,7 @@ function Initialize(e){
             console.error("Failed to convert available_space from string to integer");
         }
     }
-    setBarWidth();
-    updateRemaining();
+    updateHTML();
     /* checks the localstorage for all previously uploaded images */
     for(let i = 0; i<localStorage.length;i++){
         let key = localStorage.key(i);
@@ -107,13 +121,8 @@ function onInput(e){
             localStorage.setItem(files[i].name,files[i]);
         }
         localStorage.setItem("available_space",String(available_space));
-        setBarWidth();
-        updateRemaining();
+        updateHTML();
     }
 
 };
 
-function setBarWidth(){
-    let percentage = 100*(total_space-available_space)/total_space;
-    document.getElementsByClassName("gradient-bar")[0].setAttribute("style",`width:${percentage}%`);
-}

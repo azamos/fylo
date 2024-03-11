@@ -136,6 +136,7 @@ h1 span {
   width: 0%;
   height: 0.8rem;
   position: relative;
+  transition:1s ease;
 }
 .dot-container {
   position: relative;
