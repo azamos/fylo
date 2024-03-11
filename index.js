@@ -10,49 +10,6 @@ const AVAIL_SPACE = "available_space";
 const size_suffix = "&&fileSize";
 
 const total_space = 10*MB;/*measured in Byte units.*/
-let available_space = total_space-0;//Bytes
-
-/**
- * 
- * @param {int} size_bytes 
- * @returns {string} - a string representing the most fitting unit convertion of size_bytes
- */
-function size_to_string(size_bytes){
-    if(size_bytes/GB>1){
-        return `${(size_bytes/GB).toFixed(1)} GB`;
-    }
-    if(size_bytes/MB>1){
-        return `${(size_bytes/MB).toFixed(1)} MB`;
-    }
-    if(size_bytes/KB>1){
-        return `${(size_bytes/KB).toFixed(1)} KB`;
-    }
-    return `${size_bytes} Bytes`;
-}
-
-function setBarWidth(){
-    let percentage = 100*(total_space-available_space)/total_space;
-    document.getElementsByClassName("gradient-bar")[0].setAttribute("style",`width:${percentage}%`);
-}
-
-function updateUsed(){
-    document.getElementById("used-space").innerText = size_to_string(total_space - available_space);
-}
-
-function updateRemaining(){
-    const num_and_unit = size_to_string(available_space).split(" ");
-    if(isNaN(num_and_unit[0])){
-        console.log(size_to_string(available_space))
-    }
-    document.getElementById("remaining-space").innerHTML = 
-    `${num_and_unit[0]} <span>${num_and_unit[1]} left</span>`;
-}
-
-function updateHTML(){
-    setBarWidth();
-    updateRemaining();
-    updateUsed();
-}
 
 /**
  * 
@@ -60,33 +17,15 @@ function updateHTML(){
  * @returns {void} - this body onload event handler updates
  *  the html elements representing the remaining space.
  */
-
 function Initialize(e){
     document.getElementById("max-capacity").innerText = size_to_string(total_space);
     if(localStorage.getItem(AVAIL_SPACE)== null){/*Means no files were previously uploaded */
-        console.log("here...")
-        available_space = total_space;
-        localStorage.setItem(AVAIL_SPACE,available_space);
-    }
-    else{
-        try{
-            let a = localStorage.getItem(AVAIL_SPACE);
-            console.log("a = "+a);
-            available_space = parseInt(a);
-            if(!available_space){
-                throw new Error(`failed to convert ${localStorage.getItem(AVAIL_SPACE)}`)
-            }
-        }
-        catch(err){
-            available_space = total_space;
-            console.error("Failed to convert available_space from string to integer");
-        }
+        localStorage.setItem(AVAIL_SPACE,total_space);
     }
     updateHTML();
     /* checks the localstorage for all previously uploaded images */
     for(let i = 0; i<localStorage.length;i++){
         let key = localStorage.key(i);
-        //TODO: maybe do something with the image names later...
         if(key.split(size_suffix).length == 1 && key !== AVAIL_SPACE ){
             append_file_name(key);
         }
@@ -130,7 +69,9 @@ function onInput(e){
             will be add to the required_space variable.*/
             let file_size = localStorage.getItem(sizeKey(files[i].name)); 
             if(file_size){
-                available_space += parseInt(file_size);
+                // let available_space = getAvailableSpace();
+                // available_space += parseInt(file_size);
+                // setAvailableSpace(available_space);
                 removeFile(files[i].name);
                 updateHTML();
             }
@@ -138,17 +79,18 @@ function onInput(e){
     }
     
     if(all_files_valid){
+        let available_space = getAvailableSpace();
         if(available_space < required_space){
             alert("There is not enough space on the disk");
             return;
         }
         available_space -= required_space;
+        setAvailableSpace(available_space);
         for(let i = 0; i< files.length;i++){
             localStorage.setItem(files[i].name,files[i]);
             localStorage.setItem(sizeKey(files[i].name),files[i].size);
             append_file_name(files[i].name);
         }
-        localStorage.setItem(AVAIL_SPACE,available_space);
         updateHTML();
     }
 
@@ -159,8 +101,9 @@ const sizeKey = fileName => `${fileName}${size_suffix}`;
 function removeFile(fileName){
     localStorage.removeItem(fileName);
     let size = localStorage.getItem(sizeKey(fileName))
+    let available_space = getAvailableSpace(); 
     available_space += parseInt(size);
-    localStorage.setItem(AVAIL_SPACE,available_space);
+    setAvailableSpace(available_space);
     localStorage.removeItem(sizeKey(fileName));
     htmlNode = document.getElementById(fileName);
     htmlNode.parentNode.removeChild(htmlNode);
@@ -178,3 +121,53 @@ function append_file_name(fileName){
     });
 }
 
+/**
+ * 
+ * @param {int} size_bytes 
+ * @returns {string} - a string representing the most fitting unit convertion of size_bytes
+ */
+function size_to_string(size_bytes){
+    if(size_bytes/GB>1){
+        return `${(size_bytes/GB).toFixed(1)} GB`;
+    }
+    if(size_bytes/MB>1){
+        return `${(size_bytes/MB).toFixed(1)} MB`;
+    }
+    if(size_bytes/KB>1){
+        return `${(size_bytes/KB).toFixed(1)} KB`;
+    }
+    return `${size_bytes} Bytes`;
+}
+
+function getAvailableSpace(){
+    return parseInt(localStorage.getItem(AVAIL_SPACE));
+}
+
+
+function setAvailableSpace(num){
+    return localStorage.setItem(AVAIL_SPACE,num);
+}
+
+function setBarWidth(){
+    let percentage = 100*(total_space-getAvailableSpace())/total_space;
+    document.getElementsByClassName("gradient-bar")[0].setAttribute("style",`width:${percentage}%`);
+}
+
+function updateUsed(){
+    document.getElementById("used-space").innerText = size_to_string(total_space - getAvailableSpace());
+}
+
+function updateRemaining(){
+    const num_and_unit = size_to_string(getAvailableSpace()).split(" ");
+    if(isNaN(num_and_unit[0])){
+        console.log(size_to_string(getAvailableSpace()));
+    }
+    document.getElementById("remaining-space").innerHTML = 
+    `${num_and_unit[0]} <span>${num_and_unit[1]} left</span>`;
+}
+
+function updateHTML(){
+    setBarWidth();
+    updateRemaining();
+    updateUsed();
+}
