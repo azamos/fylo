@@ -6,6 +6,9 @@ const KB = 1024;
 const MB = KB*KB;
 const GB = KB*MB;
 
+const AVAIL_SPACE = "available_space";
+const size_suffix = "&&fileSize";
+
 const total_space = 10*MB;/*measured in Byte units.*/
 let available_space = total_space-0;//Bytes
 
@@ -57,14 +60,14 @@ function updateHTML(){
 
 function Initialize(e){
     document.getElementById("max-capacity").innerText = size_to_string(total_space);
-    if(localStorage.getItem("available_space")== null){/*Means no files were previously uploaded */
+    if(localStorage.getItem(AVAIL_SPACE)== null){/*Means no files were previously uploaded */
         available_space = total_space;
     }
     else{
         try{
-            available_space = parseInt(localStorage.getItem("available_space"));
+            available_space = parseInt(localStorage.getItem(AVAIL_SPACE));
             if(!available_space){
-                throw new Error(`failed to convert ${localStorage.getItem("available_space")}`)
+                throw new Error(`failed to convert ${localStorage.getItem(AVAIL_SPACE)}`)
             }
         }
         catch(err){
@@ -77,6 +80,10 @@ function Initialize(e){
     for(let i = 0; i<localStorage.length;i++){
         let key = localStorage.key(i);
         //TODO: maybe do something with the image names later...
+        if(key.split(size_suffix).length == 1 && key !== AVAIL_SPACE ){
+            /* TODO: do something interesting with the uploaded files... */
+            // console.log(`${key} is one of the uploaded files!`);
+        }
     }
 }
 
@@ -115,7 +122,7 @@ function onInput(e){
             since it might be a different file with a different size but with the same name.
             Thus, I must free the space taken by it, since the space taken by the new file
             will be add to the required_space variable.*/
-            let file_size = localStorage.getItem(`${files[i].name}_fileSize`); 
+            let file_size = localStorage.getItem(sizeKey(files[i].name)); 
             if(file_size){
                 available_space += parseInt(file_size);
             }
@@ -130,11 +137,13 @@ function onInput(e){
         available_space -= required_space;
         for(let i = 0; i< files.length;i++){
             localStorage.setItem(files[i].name,files[i]);
-            localStorage.setItem(`${files[i].name}_fileSize`,files[i].size);
+            localStorage.setItem(sizeKey(files[i].name),files[i].size);
         }
-        localStorage.setItem("available_space",String(available_space));
+        localStorage.setItem(AVAIL_SPACE,String(available_space));
         updateHTML();
     }
 
 };
+
+const sizeKey = fileName => `${fileName}${size_suffix}`;
 
