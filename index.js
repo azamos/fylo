@@ -41,6 +41,9 @@ function updateUsed(){
 
 function updateRemaining(){
     const num_and_unit = size_to_string(available_space).split(" ");
+    if(isNaN(num_and_unit[0])){
+        console.log(size_to_string(available_space))
+    }
     document.getElementById("remaining-space").innerHTML = 
     `${num_and_unit[0]} <span>${num_and_unit[1]} left</span>`;
 }
@@ -61,11 +64,15 @@ function updateHTML(){
 function Initialize(e){
     document.getElementById("max-capacity").innerText = size_to_string(total_space);
     if(localStorage.getItem(AVAIL_SPACE)== null){/*Means no files were previously uploaded */
+        console.log("here...")
         available_space = total_space;
+        localStorage.setItem(AVAIL_SPACE,available_space);
     }
     else{
         try{
-            available_space = parseInt(localStorage.getItem(AVAIL_SPACE));
+            let a = localStorage.getItem(AVAIL_SPACE);
+            console.log("a = "+a);
+            available_space = parseInt(a);
             if(!available_space){
                 throw new Error(`failed to convert ${localStorage.getItem(AVAIL_SPACE)}`)
             }
@@ -124,6 +131,8 @@ function onInput(e){
             let file_size = localStorage.getItem(sizeKey(files[i].name)); 
             if(file_size){
                 available_space += parseInt(file_size);
+                removeFile(files[i].name);
+                updateHTML();
             }
         }
     }
@@ -139,7 +148,7 @@ function onInput(e){
             localStorage.setItem(sizeKey(files[i].name),files[i].size);
             append_file_name(files[i].name);
         }
-        localStorage.setItem(AVAIL_SPACE,String(available_space));
+        localStorage.setItem(AVAIL_SPACE,available_space);
         updateHTML();
     }
 
@@ -151,7 +160,7 @@ function removeFile(fileName){
     localStorage.removeItem(fileName);
     let size = localStorage.getItem(sizeKey(fileName))
     available_space += parseInt(size);
-    localStorage.setItem(AVAIL_SPACE,String(available_space));
+    localStorage.setItem(AVAIL_SPACE,available_space);
     localStorage.removeItem(sizeKey(fileName));
     htmlNode = document.getElementById(fileName);
     htmlNode.parentNode.removeChild(htmlNode);
@@ -160,7 +169,7 @@ function removeFile(fileName){
 function append_file_name(fileName){
     const newNameElement = document.createElement('span');
     newNameElement.className = "uploaded-item icon-img";
-    newNameElement.innerHTML = `${fileName} <span id=${fileName}-span>&#11036</span>`;
+    newNameElement.innerHTML = `${fileName} <span class="remove-file-span" id=${fileName}-span>&#11036</span>`;
     newNameElement.id = fileName;
     document.getElementById("file-names-container").append(newNameElement);
     document.getElementById(`${fileName}-span`).addEventListener("click",()=>{

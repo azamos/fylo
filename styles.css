@@ -66,10 +66,18 @@ main {
   flex-wrap: wrap;
   justify-content: flex-start;
   padding: 1vmin;
+  border-radius: 15px;
+  gap: 1vmin;
 }
 
 .uploaded-item{
   color: white;
+}
+.uploaded-item:hover{
+  transform: scale(1.1);
+}
+.remove-file-span:hover{
+  box-shadow: .1vmin .1vmin .5vmin .5vmin rgb(224, 42, 42);
 }
 
 .fylo-container {
