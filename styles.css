@@ -68,6 +68,7 @@ main {
   padding: 1vmin;
   border-radius: 15px;
   gap: 1vmin;
+  margin: 0 -2.5rem;
 }
 
 .uploaded-item{
@@ -120,6 +121,9 @@ main {
   height: 7rem;
   position: relative;
   grid-area: b;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 h1 {
