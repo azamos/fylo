@@ -6,7 +6,7 @@ const KB = 1024;
 const MB = KB*KB;
 const GB = KB*MB;
 
-const total_space = 5*MB;/*measured in Byte units.*/
+const total_space = 10*MB;/*measured in Byte units.*/
 let available_space = total_space-0;//Bytes
 
 /**
@@ -63,6 +63,9 @@ function Initialize(e){
     else{
         try{
             available_space = parseInt(localStorage.getItem("available_space"));
+            if(!available_space){
+                throw new Error(`failed to convert ${localStorage.getItem("available_space")}`)
+            }
         }
         catch(err){
             available_space = total_space;
@@ -108,6 +111,14 @@ function onInput(e){
         }
         else{
             required_space+=files[i].size;
+            /*If a file with the same name was already uploaded, I will overwrite it,
+            since it might be a different file with a different size but with the same name.
+            Thus, I must free the space taken by it, since the space taken by the new file
+            will be add to the required_space variable.*/
+            let file_size = localStorage.getItem(`${files[i].name}_fileSize`); 
+            if(file_size){
+                available_space += parseInt(file_size);
+            }
         }
     }
     
@@ -119,6 +130,7 @@ function onInput(e){
         available_space -= required_space;
         for(let i = 0; i< files.length;i++){
             localStorage.setItem(files[i].name,files[i]);
+            localStorage.setItem(`${files[i].name}_fileSize`,files[i].size);
         }
         localStorage.setItem("available_space",String(available_space));
         updateHTML();
