@@ -64,7 +64,7 @@ main {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  /* justify-content: flex-start; */
   padding: 1vmin;
   border-radius: 15px;
   gap: 1vmin;
@@ -78,7 +78,12 @@ main {
   transform: scale(1.1);
 }
 .remove-file-span:hover{
-  box-shadow: .1vmin .1vmin .5vmin .5vmin rgb(224, 42, 42);
+  box-shadow: .1vmin .1vmin .2vmin .2vmin rgba(255, 77, 151, 1),-.1vmin -.1vmin .2vmin .2vmin rgba(255, 163, 153, 1);
+}
+
+.interactive:hover{
+  box-shadow: .1vmin .1vmin .2vmin .2vmin rgba(255, 77, 151, 1),-.1vmin -.1vmin .2vmin .2vmin rgba(255, 163, 153, 1);
+  transform: scale(1.2);
 }
 
 .fylo-container {

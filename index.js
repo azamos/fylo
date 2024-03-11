@@ -63,18 +63,6 @@ function onInput(e){
         }
         else{
             required_space+=files[i].size;
-            /*If a file with the same name was already uploaded, I will overwrite it,
-            since it might be a different file with a different size but with the same name.
-            Thus, I must free the space taken by it, since the space taken by the new file
-            will be add to the required_space variable.*/
-            let file_size = localStorage.getItem(sizeKey(files[i].name)); 
-            if(file_size){
-                // let available_space = getAvailableSpace();
-                // available_space += parseInt(file_size);
-                // setAvailableSpace(available_space);
-                removeFile(files[i].name);
-                updateHTML();
-            }
         }
     }
     
@@ -87,6 +75,15 @@ function onInput(e){
         available_space -= required_space;
         setAvailableSpace(available_space);
         for(let i = 0; i< files.length;i++){
+            /*If a file with the same name was already uploaded, I will overwrite it,
+            since it might be a different file with a different size but with the same name.
+            Thus, I must free the space taken by it, since the space taken by the new file
+            will be add to the required_space variable.*/
+            let file_size = localStorage.getItem(sizeKey(files[i].name)); 
+            if(file_size){
+                removeFile(files[i].name);
+                updateHTML();
+            }
             localStorage.setItem(files[i].name,files[i]);
             localStorage.setItem(sizeKey(files[i].name),files[i].size);
             append_file_name(files[i].name);
@@ -98,6 +95,12 @@ function onInput(e){
 
 const sizeKey = fileName => `${fileName}${size_suffix}`;
 
+/**
+ * 
+ * @param {string} fileName
+ * removes the file and its size from the localData,
+ * updates the available space, and removes the filename HTML element. 
+ */
 function removeFile(fileName){
     localStorage.removeItem(fileName);
     let size = localStorage.getItem(sizeKey(fileName))
@@ -109,6 +112,11 @@ function removeFile(fileName){
     htmlNode.parentNode.removeChild(htmlNode);
 }
 
+/**
+ * 
+ * @param {string} fileName
+ * adds the fileName to the localStorage and adds an HTML element for it. 
+ */
 function append_file_name(fileName){
     const newNameElement = document.createElement('span');
     newNameElement.className = "uploaded-item icon-img";
@@ -159,9 +167,6 @@ function updateUsed(){
 
 function updateRemaining(){
     const num_and_unit = size_to_string(getAvailableSpace()).split(" ");
-    if(isNaN(num_and_unit[0])){
-        console.log(size_to_string(getAvailableSpace()));
-    }
     document.getElementById("remaining-space").innerHTML = 
     `${num_and_unit[0]} <span>${num_and_unit[1]} left</span>`;
 }
