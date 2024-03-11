@@ -81,8 +81,7 @@ function Initialize(e){
         let key = localStorage.key(i);
         //TODO: maybe do something with the image names later...
         if(key.split(size_suffix).length == 1 && key !== AVAIL_SPACE ){
-            /* TODO: do something interesting with the uploaded files... */
-            // console.log(`${key} is one of the uploaded files!`);
+            append_file_name(key);
         }
     }
 }
@@ -138,6 +137,7 @@ function onInput(e){
         for(let i = 0; i< files.length;i++){
             localStorage.setItem(files[i].name,files[i]);
             localStorage.setItem(sizeKey(files[i].name),files[i].size);
+            append_file_name(files[i].name);
         }
         localStorage.setItem(AVAIL_SPACE,String(available_space));
         updateHTML();
@@ -146,4 +146,26 @@ function onInput(e){
 };
 
 const sizeKey = fileName => `${fileName}${size_suffix}`;
+
+function removeFile(fileName){
+    localStorage.removeItem(fileName);
+    let size = localStorage.getItem(sizeKey(fileName))
+    available_space += parseInt(size);
+    localStorage.setItem(AVAIL_SPACE,String(available_space));
+    localStorage.removeItem(sizeKey(fileName));
+    htmlNode = document.getElementById(fileName);
+    htmlNode.parentNode.removeChild(htmlNode);
+}
+
+function append_file_name(fileName){
+    const newNameElement = document.createElement('span');
+    newNameElement.className = "uploaded-item icon-img";
+    newNameElement.innerHTML = `${fileName} <span id=${fileName}-span>&#11036</span>`;
+    newNameElement.id = fileName;
+    document.getElementById("file-names-container").append(newNameElement);
+    document.getElementById(`${fileName}-span`).addEventListener("click",()=>{
+        removeFile(fileName);
+        updateHTML();
+    });
+}
 

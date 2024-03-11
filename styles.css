@@ -56,8 +56,20 @@ main {
 
 /** Fylo Container **/
 .fylo-container,
-.storage-container {
+.storage-container,
+.uploaded-files_container{
   background-color: var(--container-background-color);
+}
+.uploaded-files_container{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  padding: 1vmin;
+}
+
+.uploaded-item{
+  color: white;
 }
 
 .fylo-container {
